@@ -21,9 +21,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { message, type = 'info', area = 'Demo Zone' } = body
+    const { message, area = 'Demo Zone' } = body
 
-    if (!message) {
+    // Sanitize type — must match DB CHECK constraint, default to 'info'
+    const VALID_TYPES = ['info', 'blackout', 'all_clear', 'update']
+    const type = VALID_TYPES.includes(body.type) ? body.type : 'info'
+
+    if (!message || typeof message !== 'string' || message.trim() === '') {
       return NextResponse.json({ error: 'Missing message' }, { status: 400 })
     }
 
