@@ -71,7 +71,46 @@ export default function CitizenApp({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Supabase real-time subscriptions
+  // Polling fallback — checks crisis_status every 5s in case realtime misses an event
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const { data } = await supabase
+          .from('crisis_status')
+          .select('status')
+          .eq('id', 1)
+          .single()
+        if (data?.status) setCrisisStatus(data.status as CrisisStatus)
+      } catch { /* ignore */ }
+    }
+    const interval = setInterval(poll, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Polling fallback for new announcements
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const { data } = await supabase
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5)
+        if (!data) return
+        for (const ann of data) {
+          if (!announcementIds.current.has(ann.id)) {
+            announcementIds.current.add(ann.id)
+            setAnnouncements((prev) => [ann, ...prev])
+            setPendingAnnouncement(ann)
+            if (ann.type === 'blackout') setCrisisStatus('blackout')
+            else if (ann.type === 'all_clear') setCrisisStatus('normal')
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    const interval = setInterval(poll, 5000)
+    return () => clearInterval(interval)
+  }, [])
   useEffect(() => {
     const channel = supabase
       .channel(`citizen-app-${citizenId}`)
