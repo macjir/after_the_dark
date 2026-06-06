@@ -47,6 +47,7 @@ export default function AnnouncementDialog({ announcement, onDismiss, isBlackout
     minute: '2-digit',
     day: '2-digit',
     month: '2-digit',
+    timeZone: 'Europe/Prague',
   })
 
   return (

@@ -44,12 +44,13 @@ export async function POST(request: NextRequest) {
         .eq('id', 1)
         .single()
 
+      // Fetch AFTER saving — so the current message is included in context
       const { data: recentMessages } = await supabase
         .from('chat_messages')
         .select('role, content')
         .eq('session_id', 'coordinator')
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(20)
 
       context = {
         current_status: crisisStatus?.status ?? 'normal',
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
           .join('\n') ?? '',
       }
     } else {
-      // Fetch citizen data in parallel
+      // Fetch citizen data in parallel — messages fetched AFTER saving so context is complete
       const [
         { data: citizen },
         { data: crisisStatus },
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
           .select('role, content')
           .eq('session_id', session_id)
           .order('created_at', { ascending: false })
-          .limit(10),
+          .limit(20),
         supabase
           .from('announcements')
           .select('message, created_at')
