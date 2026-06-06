@@ -4,6 +4,15 @@ import type { Citizen, Contact, CitizenStatusRecord, Announcement, ChatMessage }
 
 export async function POST(request: NextRequest) {
   try {
+    // Guard: fail fast with a clear message if env vars are missing
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[chat] Missing Supabase env vars')
+      return NextResponse.json(
+        { error: 'Server misconfiguration: Supabase env vars not set on Vercel' },
+        { status: 500 }
+      )
+    }
+
     const body = await request.json()
     const { session_id, message } = body
 
