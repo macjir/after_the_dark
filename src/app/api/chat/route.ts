@@ -121,10 +121,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
-    // Send to n8n (fire and forget — n8n calls back /api/webhook/n8n)
-    fetch(webhookUrl, {
+    // Await the fetch — fire-and-forget gets killed by serverless runtime before it sends
+    const n8nRes = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -133,7 +133,23 @@ export async function POST(request: NextRequest) {
         session_id,
         callback_url: `${appUrl}/api/webhook/n8n`,
       }),
-    }).catch((err) => console.error('[chat] n8n webhook error:', err))
+    }).catch((err) => {
+      console.error('[chat] n8n fetch error:', err)
+      return null
+    })
+
+    if (!n8nRes) {
+      return NextResponse.json({ error: 'Could not reach n8n webhook' }, { status: 502 })
+    }
+
+    if (!n8nRes.ok) {
+      const body = await n8nRes.text().catch(() => '')
+      console.error(`[chat] n8n returned ${n8nRes.status}:`, body)
+      return NextResponse.json(
+        { error: `n8n returned ${n8nRes.status}`, detail: body },
+        { status: 502 }
+      )
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {
