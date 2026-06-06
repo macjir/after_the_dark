@@ -1,0 +1,1478 @@
+{
+  "name": "Workflow B – Mayor Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a filter for the HQ crisis app. Decide whether a citizen's message is relevant to a crisis situation.\n\nRelevant: blackout, emergency alert, rescue, health in crisis, supplies, safety, situational orientation.\nNot relevant: general weather, sports, news and anything unrelated to a crisis.\n\nWARNING: when in doubt, approve the borderline case rather than reject it. A false negative is a critical failure.",
+          "maxIterations": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -16,
+        -1248
+      ],
+      "id": "dfc8df27-ac77-47d4-901f-6960ecdae85b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -1280
+      ],
+      "id": "f2768004-e6a7-4fdf-9335-4d797824ff38",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BkQM8AbnBpPg8JbT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        -1280
+      ],
+      "id": "c126a0bb-5286-4f53-9784-e99bc5eddc97",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BkQM8AbnBpPg8JbT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"is_relevant\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if message is crisis comm. Otherwise false.\"\n    }\n  },\n  \"required\": [\"is_relevant\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        -1024
+      ],
+      "id": "eec8bf7f-55b7-4e33-8114-a79bc2e1d55f",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook1').item.json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a crisis assistant for the HQ app helping citizens during blackouts and emergencies.\n\nCONTEXT:\n{{ $('Webhook1').item.json.body.context }}\n\nUse available tools to answer questions about survival, supplies, and emergencies.\n\nRESPONSE RULES:\n- Answer clearly and practically in 2–3 sentences\n- Prioritize safety and health above comfort\n- Use coordinator updates if relevant to the question\n- Take health conditions into account when giving advice\n- If you need more information from the citizen, ask directly inside response_text\n\nDECISION RULES:\n- send_ok: true only if citizen explicitly wants to notify contacts they are safe\n- call_izs: true if any life-threatening condition is present or suspected\n\nSUGGESTED QUESTIONS:\n- suggested_questions are pre-filled buttons shown to the citizen for their NEXT message to you\n- Write them as if the citizen is asking you — not as if you are asking them\n- Exactly 2, max 5 words each\n- Make them relevant to the citizen's current situation\n\nSESSION:\n- Update new_session with 1–2 sentence summary of what was discussed"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        -1504
+      ],
+      "id": "435d85b9-b58b-4107-b887-45c44490d514",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "citizen-query",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        -1248
+      ],
+      "id": "7e2c665a-7b11-4c08-994a-ca2950c05fa7",
+      "name": "Webhook1",
+      "webhookId": "0df54a89-af3f-48d8-9b80-0870fd6c1474",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"content\": { \"type\": \"string\" },\n    \"suggested_buttons\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"call_izs\": { \"type\": \"boolean\" },\n    \"send_ok_to_contacts\": { \"type\": \"boolean\" },\n    \"new_session\": { \"type\": \"string\" }\n  },\n  \"required\": [\"content\", \"suggested_buttons\", \"call_izs\", \"send_ok_to_contacts\", \"new_session\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        -1280
+      ],
+      "id": "e9edd9b2-4712-413c-a4fb-aa3bc1ec3bbd",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "91159fff-8418-4158-81a4-c1f5fc036674",
+              "leftValue": "={{ $json.output.is_relevant }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -1248
+      ],
+      "id": "e9f8da0a-e7b2-4179-b2eb-42a59a244228",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "description": "First aid procedures and when to call emergency services 112/155",
+        "jsCode": "return {\n  \"call_immediately_112_or_155\": [\n    \"unconscious or not breathing\",\n    \"chest pain lasting over 5 minutes\",\n    \"stroke: face drooping, arm weakness, slurred speech\",\n    \"resuscitation in progress\",\n    \"severe bleeding uncontrollable after 10 minutes\",\n    \"electric shock\",\n    \"spinal injury suspected\",\n    \"severe hypothermia: shivering stopped + confusion\",\n    \"CO poisoning: headache at home during blackout\",\n    \"severe allergic reaction with throat swelling\",\n    \"poisoning\",\n    \"drowning\"\n  ],\n  \"procedures\": {\n    \"no_breathing\": [\"call 155 immediately\", \"30 chest compressions + 2 breaths\", \"continue until ambulance arrives\"],\n    \"unconscious_breathing\": [\"place in recovery position\", \"monitor breathing\", \"call 155\"],\n    \"severe_bleeding\": [\"apply direct pressure\", \"use pressure dressing\", \"tourniquet as last resort\"],\n    \"heart_attack\": [\"keep seated\", \"calm the person\", \"call 155 immediately\"],\n    \"stroke\": [\"call 155 immediately\", \"do not give food or water\", \"monitor consciousness\"],\n    \"choking\": [\"encourage coughing\", \"5 back blows between shoulder blades\", \"5 abdominal thrusts\", \"if unconscious start CPR\"],\n    \"burns\": [\"cool with running water 10+ minutes\", \"remove jewelry\", \"cover wound\", \"call 155 if face, airway or large area\"],\n    \"hypothermia\": [\"warm gradually\", \"cover with blanket\", \"warm drinks if conscious\", \"call 155 if unconscious\"],\n    \"hypoglycemia\": [\"give sugar if conscious\", \"monitor\", \"call 155 if unconscious or no improvement\"],\n    \"electric_shock\": [\"turn off power first\", \"do not touch until safe\", \"check breathing\", \"resuscitate if needed\"]\n  }\n};\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        -1280
+      ],
+      "id": "f78cc61e-17f7-4f4e-a36e-eadc2dc4e90e",
+      "name": "first_aid"
+    },
+    {
+      "parameters": {
+        "description": "description on what is blackout and how to behave",
+        "jsCode": "return {\n  \"blackout\": {\n    \"description\": \"A large-scale power outage affecting a wide area.\",\n    \"causes\": [\"grid overload\", \"technical failure\", \"extreme weather\", \"cyber attack\", \"human error\"],\n    \"impacts\": {\n      \"household\": [\"no electricity\", \"no internet\", \"possible water outage\", \"food spoilage\"],\n      \"transport\": [\"traffic lights not working\", \"trains and public transport stopped\", \"fuel stations out of service\"],\n      \"communication\": [\"overloaded mobile networks\", \"limited internet\"],\n      \"services\": [\"shops closed\", \"card payments not working\", \"ATMs out of service\"]\n    }\n  },\n  \"basic_rules\": [\"stay calm\", \"save battery and resources\", \"follow official information\", \"help others\"],\n  \"emergency_situations\": {\n    \"elevator\": { \"do\": [\"stay calm\", \"use emergency button\", \"call for help\"], \"dont\": [\"force doors open\", \"climb out between floors\"] },\n    \"home\": { \"do\": [\"use flashlight\", \"secure home\", \"inform relatives\", \"prepare water and food\"] },\n    \"car\": { \"do\": [\"follow right-hand rule\", \"drive slowly\", \"watch police directions\"] },\n    \"seniors\": { \"do\": [\"check on neighbors\", \"ensure medication availability\"] },\n    \"children\": { \"do\": [\"stay calm\", \"pick up child as instructed\", \"do not overload communication\"] },\n    \"garage_doors\": { \"do\": [\"use manual opening\", \"contact building manager\"] }\n  },\n  \"environment\": {\n    \"winter\": [\"dress in layers\", \"stay in one room\", \"close windows\"],\n    \"summer\": [\"drink enough water\", \"ventilate morning and evening\", \"limit physical activity\"]\n  },\n  \"prohibitions\": [\"do not use open flame unattended\", \"do not drive unnecessarily\", \"do not spread unverified information\"]\n};\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        -1280
+      ],
+      "id": "7bef3e20-932b-4488-9ddc-21e87469a296",
+      "name": "blackout_info"
+    },
+    {
+      "parameters": {
+        "description": "survival_supplies",
+        "jsCode": "return {\n  water: \"2L/day drinking + 2L hygiene. Fill containers immediately. Purify by boiling 1min or 8 drops chlorine per 4L.\",\n  food: \"Canned goods, biscuits, nuts, energy bars. No cooking needed. Freezer safe 48h, fridge 4h – do not open.\",\n  warmth: \"Layer 3 clothes. NEVER use grill or open fire indoors – CO poisoning.\",\n  medication: \"Open insulin safe 28 days without refrigeration. Always carry 3+ day supply.\",\n  communication: \"Battery radio – Czech Radio 98.7 MHz. Use SMS not calls.\"\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -1280
+      ],
+      "id": "de0ecc1d-254c-4753-8a69-01cac21af93b",
+      "name": "survival_supplies"
+    },
+    {
+      "parameters": {
+        "description": "emergency_response",
+        "jsCode": "return {\n  call_112_if: [\n    \"unconscious or not breathing\",\n    \"chest pain over 5 minutes\",\n    \"stroke: face drooping, arm weakness, speech problems\",\n    \"bleeding uncontrollable after 10 minutes\",\n    \"hypothermia: shivering stopped + confusion\",\n    \"CO poisoning: headache at home during blackout\",\n    \"severe allergic reaction with throat swelling\"\n  ],\n  numbers: { \"112\": \"general emergency\", \"155\": \"ambulance\", \"150\": \"fire\", \"158\": \"police\" },\n  behavior: [\"disconnect appliances\", \"do not open fridge\", \"use cash only\", \"save phone battery\"]\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        -1280
+      ],
+      "id": "6e06eca5-8007-4c77-ad24-a231945d5362",
+      "name": "emergency_response"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook1').item.json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a crisis assistant for the HQ app. The citizen sent a message not relevant to crisis management.\n\nCONTEXT:\n{{ JSON.stringify($('Webhook1').item.json.body.context) }}\n\nDo NOT answer the off-topic question.\nPolitely redirect in one sentence and report current crisis status from context.\n\nSUGGESTED QUESTIONS:\n- suggested_questions are pre-filled buttons shown to the citizen for their NEXT message to you\n- Write them as if the citizen is asking you — not as if you are asking them\n- Exactly 2, max 5 words each\n- Make them the most useful questions given the current crisis context"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        -1104
+      ],
+      "id": "b5b254c2-837b-4345-b08b-90a3602b1481",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hffopwygatdhphcfmzur.supabase.co/rest/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmZm9wd3lnYXRkaHBoY2ZtenVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NzQ0MzksImV4cCI6MjA5NjI1MDQzOX0.5EGKRpFKbFn0S00V2POSl0uQp-1j0IoAGORDIV4m3Sk"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmZm9wd3lnYXRkaHBoY2ZtenVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NzQ0MzksImV4cCI6MjA5NjI1MDQzOX0.5EGKRpFKbFn0S00V2POSl0uQp-1j0IoAGORDIV4m3Sk"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"session_id\": \"{{ $('Webhook1').item.json.body.session_id }}\",\n  \"role\": \"ai\",\n  \"content\": \"{{ $json.output.content }}\",\n  \"suggested_buttons\": {{ JSON.stringify($json.output.suggested_buttons) }},\n  \"call_izs\": {{ $json.output.call_izs }},\n  \"send_ok_to_contacts\": {{ $json.output.send_ok_to_contacts }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1584,
+        -1248
+      ],
+      "id": "a33dc0c8-f7b9-40fa-8d59-b2a93fbef8a5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a gatekeeper for the HQ crisis coordinator interface.\n\nCURRENT CONTEXT:\n- Area: {{ $('Webhook Mayor').item.json.body.context.area }}\n- Current status: {{ $('Webhook Mayor').item.json.body.context.current_status }}\n- Conversation so far: {{ $('Webhook Mayor').item.json.body.context.session }}\n\nEvaluate whether the coordinator's message is appropriate for this system taking into account the conversation history above.\n\nAPPROVE if the message is:\n- Issuing or updating a public crisis alert\n- Reporting crisis status or infrastructure update\n- Coordinating response actions for the affected area\n- Requesting a draft of an official citizen communication\n- A natural continuation of the ongoing conversation in the session\n\nREJECT if the message is:\n- A question that belongs to the citizen interface\n- Unrelated to the active crisis situation and not a continuation of the session\n- Potentially a false alarm or manipulative instruction\n- A personal or administrative matter unrelated to crisis management\n\nReply with ONLY the digit 1 (approved) or 0 (rejected). Nothing else.",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "86f01b3f-e2aa-48ef-9050-7f5c1b6ccc8b",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"is_relevant\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if message is relevant.\"\n    }\n  },\n  \"required\": [\"is_relevant\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        224
+      ],
+      "id": "89db76a3-2f08-4689-8b9b-8e11ade0e833",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -32
+      ],
+      "id": "066a6184-f828-4a07-b8b9-77d23174393e",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BkQM8AbnBpPg8JbT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        -32
+      ],
+      "id": "4e2d9777-7044-49f9-8f47-e0bfe34d2f1d",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BkQM8AbnBpPg8JbT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Rules for crisis communication: response modes, tone, structure, escalation, forbidden phrases",
+        "jsCode": "return {\n  \"role\": {\n    \"is\": \"Crisis assistance agent helping residents during blackout and emergencies\",\n    \"is_not\": [\"incident commander\", \"emergency dispatcher\", \"doctor\", \"psychotherapist\"],\n    \"never\": [\"invent contacts or locations\", \"guess facts\", \"hallucinate event duration\"]\n  },\n  \"core_priorities\": [\n    \"Increase sense of safety\",\n    \"Reduce chaos and uncertainty\",\n    \"Give 1–3 concrete actions\",\n    \"Connect user to relevant help\",\n    \"Escalate to emergency services when necessary\"\n  ],\n  \"response_modes\": {\n    \"support\": \"Standard individual communication – briefly empathetic, practical, personalized\",\n    \"triage\": \"Key detail needed – one short question at a time, minimum necessary info only\",\n    \"escalation\": \"Immediate risk – direct, brief, urgent. Advise 112/155 immediately\"\n  },\n  \"response_structure\": [\n    \"What we know now\",\n    \"What to do right now\",\n    \"What to watch out for\",\n    \"Where to find help\",\n    \"When to expect next update\"\n  ],\n  \"acute_rule\": \"If situation is acute, use only items 1–3 then escalate immediately\",\n  \"emotional_handling\": {\n    \"when_distressed\": [\n      \"Briefly validate emotion first\",\n      \"Redirect to nearest safe next step\",\n      \"Break tasks into small steps\"\n    ],\n    \"allowed\": [\"I understand this is stressful\", \"Let's take the first safe step now\"],\n    \"forbidden\": [\"Don't worry\", \"Everything will definitely be fine\", \"There is no reason to panic\"]\n  },\n  \"uncertainty_policy\": [\n    \"State what is confirmed\",\n    \"Separate from what is not yet confirmed\",\n    \"Provide safe universal recommendation\",\n    \"Never promise exact time or outcome unless system provides it\"\n  ],\n  \"escalation_triggers\": [\n    \"life-threatening condition\",\n    \"acute medical problem\",\n    \"loss of consciousness\",\n    \"fire or evacuation needed\",\n    \"danger to child or dependent person\",\n    \"medication requiring power or refrigeration\"\n  ],\n  \"safety_limits\": [\n    \"Never invent official instructions\",\n    \"Never invent help locations\",\n    \"Never confirm unverified reports\",\n    \"Never downplay or exaggerate risk\"\n  ],\n  \"style\": {\n    \"bad\": \"I understand this situation is very complicated and frightening. At the moment it is unfortunately not entirely clear what exactly is happening.\",\n    \"good\": \"There is a confirmed power outage. Do three things now: save phone battery, unplug appliances, check everyone at home is safe.\"\n  }\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        -32
+      ],
+      "id": "c43dbb30-ef70-4c4e-9183-226a395a1a41",
+      "name": "crisis_communication_rules"
+    },
+    {
+      "parameters": {
+        "description": "Blackout situation structure, required fields for alert publishing, and questions to ask mayor when data is missing",
+        "jsCode": "return {\n  \"required_for_alert\": {\n    \"event\": [\"type\", \"status\", \"affected_area\", \"start_time\"],\n    \"infrastructure\": [\"electricity.status\", \"water_supply.affected\"],\n    \"emergency_services\": [\"contacts.general_help_line\"],\n    \"public_guidance\": [\"general_message\"]\n  },\n  \"default_safety_instructions\": [\n    \"Do not use elevators\",\n    \"Be careful with open flame and candles\",\n    \"Limit use of electrical appliances\",\n    \"Save mobile phone battery\",\n    \"Use SMS instead of calls\"\n  ],\n  \"missing_data_questions\": [\n    { \"field\": \"event.start_time\", \"question\": \"When did the blackout start?\" },\n    { \"field\": \"event.affected_area\", \"question\": \"Does the outage affect the whole area or only part of it?\" },\n    { \"field\": \"event.cause\", \"question\": \"Is the cause of the outage known?\" },\n    { \"field\": \"event.estimated_resolution\", \"question\": \"Is there an estimated time for power restoration?\" },\n    { \"field\": \"infrastructure.water_supply\", \"question\": \"Is water supply affected?\" },\n    { \"field\": \"infrastructure.transport\", \"question\": \"Are traffic lights and public transport operational?\" },\n    { \"field\": \"emergency_services.contacts\", \"question\": \"What number should citizens call for help?\" },\n    { \"field\": \"support_services\", \"question\": \"Are any crisis centers or support points available?\" },\n    { \"field\": \"communication.next_update\", \"question\": \"When will the next official update be issued?\" }\n  ],\n  \"ready_to_publish_rule\": \"Alert can be published only when event.status, affected_area, start_time, and general_message are confirmed. If any are missing, ask the mayor before publishing.\",\n  \"tone_rules\": {\n    \"mayor_message_tone\": \"calm, authoritative, empathetic\",\n    \"signature\": \"Mayor\"\n  }\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        -32
+      ],
+      "id": "37a7167f-be81-4017-88bd-7bea5d68e3c1",
+      "name": "blackout_situation_template"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "91159fff-8418-4158-81a4-c1f5fc036674",
+              "leftValue": "={{ $json.output.is_relevant }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        0
+      ],
+      "id": "597c1d50-3332-4afa-ac51-b80c8c31e1b8",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mayor-query",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "cbf6b342-a4cb-4967-ae0d-aeca390faffe",
+      "name": "Webhook Mayor",
+      "webhookId": "a22fed99-ab96-4748-8e5f-192b8982539f"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook Mayor').item.json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a crisis communication assistant for the HQ coordinator interface.\nYour goal is to collect enough information to compose an official public announcement and activate the SEND button.\n\nCURRENT CONTEXT:\n- Area: {{ $('Webhook Mayor').item.json.body.context.area }}\n- Current status: {{ $('Webhook Mayor').item.json.body.context.current_status }}\n- Conversation so far: {{ $('Webhook Mayor').item.json.body.context.session }}\n\nUse available tools to check communication rules and blackout protocol before composing any announcement.\n\nCOLLECTION LOGIC:\nCheck the session for what you already know. If any key information is missing, ask ONE short question and return can_send: false.\n\nRequired information for a blackout announcement:\n- Type of event\n- Start time\n- Affected area scope\n- Estimated duration or restoration time\n- Any distribution points or shelters available\n\nANNOUNCEMENT RULES:\n- Max 3–4 sentences, calm tone, no panic\n- State what happened, where, what to do, when next update\n- Never speculate about cause unless confirmed\n\nOnce all required information is collected:\n- Compose the final announcement\n- Return can_send: true",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        768,
+        -256
+      ],
+      "id": "b1255208-9f54-46e5-809e-2768c86100ff",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook Mayor').item.json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a crisis communication assistant for the HQ coordinator interface.\n\nCURRENT CONTEXT:\n- Area: {{ $('Webhook Mayor').item.json.body.context.area }}\n- Current status: {{ $('Webhook Mayor').item.json.body.context.current_status }}\n- Conversation so far: {{ $('Webhook Mayor').item.json.body.context.session }}\n\nThe coordinator sent a message outside the scope of this interface.\n\nYour response must do three things:\n1. One sentence: explain this interface handles crisis alerts and public announcements only\n2. One sentence: summarize the current situation from context — if status is \"normal\" keep it calm, if \"blackout\" briefly state what is known\n3. Suggest exactly 2 short questions the coordinator should ask you next to move forward\n\nRULES:\n- Never imply a crisis if current_status is \"normal\"\n- can_send is always false here\n- final_announcement and announcement_type are always null here",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        768,
+        144
+      ],
+      "id": "c68e78e8-7b5b-4249-ab65-a4ddce851550",
+      "name": "AI Agent5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a filter for the HQ crisis app. Decide whether a citizen's message is relevant to a crisis situation.\n\nCURRENT CONTEXT:\n- Crisis status: {{ $('Webhook Citizen').item.json.body.context.crisis.type }}\n- Area: {{ $('Webhook Citizen').item.json.body.context.crisis.area }}\n- Previous conversation: {{ $('Webhook Citizen').item.json.body.context.session }}\n\nRelevant: blackout, emergency alert, rescue, health in crisis, supplies, safety, situational orientation, or a natural continuation of the conversation above.\nNot relevant: general weather, sports, news and anything unrelated to a crisis and not connected to the session.\n\nWARNING: when in doubt, approve the borderline case rather than reject it. A false negative is a critical failure.\n\nReply with ONLY the digit 1 (relevant) or 0 (not relevant). Nothing else.",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -16,
+        -624
+      ],
+      "id": "3ad64d3e-0f1f-4240-b8da-62b08d7b392a",
+      "name": "AI Agent6"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -656
+      ],
+      "id": "64c72f79-ee26-425f-a2e2-8c6bc816e36d",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BkQM8AbnBpPg8JbT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        -656
+      ],
+      "id": "c328d9b8-63f5-4098-b0e9-3e8a0fb70c10",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BkQM8AbnBpPg8JbT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"is_relevant\": {\n      \"type\": \"boolean\",\n      \"description\": \"True if message is crisis comm. Otherwise false.\"\n    }\n  },\n  \"required\": [\"is_relevant\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        -400
+      ],
+      "id": "10bd6a76-cdde-4aed-946b-f48d32bcf66d",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook Citizen').item.json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a crisis assistant for the HQ app helping citizens during blackouts and emergencies.\n\nCURRENT CRISIS CONTEXT:\n- Status: {{ $('Webhook Citizen').item.json.body.context.crisis.type }}\n- Area: {{ $('Webhook Citizen').item.json.body.context.crisis.area }}\n- Location: {{ $('Webhook Citizen').item.json.body.context.location }}\n- Health: {{ $('Webhook Citizen').item.json.body.context.health }}\n- Contacts: {{ JSON.stringify($('Webhook Citizen').item.json.body.context.contacts) }}\n- Coordinator updates: {{ $('Webhook Citizen').item.json.body.context.coordinator_updates[0].message }}\n- Previous conversation: {{ $('Webhook Citizen').item.json.body.context.session }}\n\nUse available tools to answer questions about survival, supplies, and emergencies.\n\nRESPONSE RULES:\n- Answer clearly and practically in 2–3 sentences\n- Prioritize safety and health above comfort\n- Use coordinator updates if relevant to the question\n- Take health conditions into account when giving advice\n- If you need more information from the citizen, ask directly inside content field\n- If status is \"normal\", do not suggest or imply any active crisis — answer calmly and factually\n\nDECISION RULES:\n- send_ok_to_contacts: true only if citizen explicitly wants to notify contacts they are safe\n- call_izs: true only if life-threatening condition is present or suspected AND status is confirmed crisis — never set true based on general concern when status is \"normal\"\n\nSUGGESTED BUTTONS: exactly 2 pre-filled questions shown to the citizen as their next message to you. Write them from the citizen's perspective. Max 5 words each. Make them relevant to the current situation and health context.",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        -880
+      ],
+      "id": "e63459b6-c301-4f1b-bf1d-65c44338b872",
+      "name": "AI Agent7"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"content\": { \"type\": \"string\" },\n    \"suggested_buttons\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"call_izs\": { \"type\": \"boolean\" },\n    \"send_ok_to_contacts\": { \"type\": \"boolean\" }\n  },\n  \"required\": [\"content\", \"suggested_buttons\", \"call_izs\", \"send_ok_to_contacts\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        -656
+      ],
+      "id": "11ff5f7f-e8cc-4e2a-ace9-c369beaf88b6",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "91159fff-8418-4158-81a4-c1f5fc036674",
+              "leftValue": "={{ $json.output.is_relevant }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -624
+      ],
+      "id": "03e8af7a-71b2-4e78-aac6-f7fca9a76661",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "description": "First aid procedures and when to call emergency services 112/155",
+        "jsCode": "return {\n  \"call_immediately_112_or_155\": [\n    \"unconscious or not breathing\",\n    \"chest pain lasting over 5 minutes\",\n    \"stroke: face drooping, arm weakness, slurred speech\",\n    \"resuscitation in progress\",\n    \"severe bleeding uncontrollable after 10 minutes\",\n    \"electric shock\",\n    \"spinal injury suspected\",\n    \"severe hypothermia: shivering stopped + confusion\",\n    \"CO poisoning: headache at home during blackout\",\n    \"severe allergic reaction with throat swelling\",\n    \"poisoning\",\n    \"drowning\"\n  ],\n  \"procedures\": {\n    \"no_breathing\": [\"call 155 immediately\", \"30 chest compressions + 2 breaths\", \"continue until ambulance arrives\"],\n    \"unconscious_breathing\": [\"place in recovery position\", \"monitor breathing\", \"call 155\"],\n    \"severe_bleeding\": [\"apply direct pressure\", \"use pressure dressing\", \"tourniquet as last resort\"],\n    \"heart_attack\": [\"keep seated\", \"calm the person\", \"call 155 immediately\"],\n    \"stroke\": [\"call 155 immediately\", \"do not give food or water\", \"monitor consciousness\"],\n    \"choking\": [\"encourage coughing\", \"5 back blows between shoulder blades\", \"5 abdominal thrusts\", \"if unconscious start CPR\"],\n    \"burns\": [\"cool with running water 10+ minutes\", \"remove jewelry\", \"cover wound\", \"call 155 if face, airway or large area\"],\n    \"hypothermia\": [\"warm gradually\", \"cover with blanket\", \"warm drinks if conscious\", \"call 155 if unconscious\"],\n    \"hypoglycemia\": [\"give sugar if conscious\", \"monitor\", \"call 155 if unconscious or no improvement\"],\n    \"electric_shock\": [\"turn off power first\", \"do not touch until safe\", \"check breathing\", \"resuscitate if needed\"]\n  }\n};\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        -656
+      ],
+      "id": "4ef3a361-d83c-4d58-83c7-c500ea9d8632",
+      "name": "first_aid1"
+    },
+    {
+      "parameters": {
+        "description": "description on what is blackout and how to behave",
+        "jsCode": "return {\n  \"blackout\": {\n    \"description\": \"A large-scale power outage affecting a wide area.\",\n    \"causes\": [\"grid overload\", \"technical failure\", \"extreme weather\", \"cyber attack\", \"human error\"],\n    \"impacts\": {\n      \"household\": [\"no electricity\", \"no internet\", \"possible water outage\", \"food spoilage\"],\n      \"transport\": [\"traffic lights not working\", \"trains and public transport stopped\", \"fuel stations out of service\"],\n      \"communication\": [\"overloaded mobile networks\", \"limited internet\"],\n      \"services\": [\"shops closed\", \"card payments not working\", \"ATMs out of service\"]\n    }\n  },\n  \"basic_rules\": [\"stay calm\", \"save battery and resources\", \"follow official information\", \"help others\"],\n  \"emergency_situations\": {\n    \"elevator\": { \"do\": [\"stay calm\", \"use emergency button\", \"call for help\"], \"dont\": [\"force doors open\", \"climb out between floors\"] },\n    \"home\": { \"do\": [\"use flashlight\", \"secure home\", \"inform relatives\", \"prepare water and food\"] },\n    \"car\": { \"do\": [\"follow right-hand rule\", \"drive slowly\", \"watch police directions\"] },\n    \"seniors\": { \"do\": [\"check on neighbors\", \"ensure medication availability\"] },\n    \"children\": { \"do\": [\"stay calm\", \"pick up child as instructed\", \"do not overload communication\"] },\n    \"garage_doors\": { \"do\": [\"use manual opening\", \"contact building manager\"] }\n  },\n  \"environment\": {\n    \"winter\": [\"dress in layers\", \"stay in one room\", \"close windows\"],\n    \"summer\": [\"drink enough water\", \"ventilate morning and evening\", \"limit physical activity\"]\n  },\n  \"prohibitions\": [\"do not use open flame unattended\", \"do not drive unnecessarily\", \"do not spread unverified information\"]\n};\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        -656
+      ],
+      "id": "2d6c48b3-0011-4fb6-a1b2-264df4e5e43e",
+      "name": "blackout_info1"
+    },
+    {
+      "parameters": {
+        "description": "survival_supplies",
+        "jsCode": "return {\n  water: \"2L/day drinking + 2L hygiene. Fill containers immediately. Purify by boiling 1min or 8 drops chlorine per 4L.\",\n  food: \"Canned goods, biscuits, nuts, energy bars. No cooking needed. Freezer safe 48h, fridge 4h – do not open.\",\n  warmth: \"Layer 3 clothes. NEVER use grill or open fire indoors – CO poisoning.\",\n  medication: \"Open insulin safe 28 days without refrigeration. Always carry 3+ day supply.\",\n  communication: \"Battery radio – Czech Radio 98.7 MHz. Use SMS not calls.\"\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -656
+      ],
+      "id": "1bfc0c5c-fe54-49c3-ab13-b99901832769",
+      "name": "survival_supplies1"
+    },
+    {
+      "parameters": {
+        "description": "emergency_response",
+        "jsCode": "return {\n  call_112_if: [\n    \"unconscious or not breathing\",\n    \"chest pain over 5 minutes\",\n    \"stroke: face drooping, arm weakness, speech problems\",\n    \"bleeding uncontrollable after 10 minutes\",\n    \"hypothermia: shivering stopped + confusion\",\n    \"CO poisoning: headache at home during blackout\",\n    \"severe allergic reaction with throat swelling\"\n  ],\n  numbers: { \"112\": \"general emergency\", \"155\": \"ambulance\", \"150\": \"fire\", \"158\": \"police\" },\n  behavior: [\"disconnect appliances\", \"do not open fridge\", \"use cash only\", \"save phone battery\"]\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        -656
+      ],
+      "id": "ffd906ce-7c17-4205-b89c-0fb5f90b4e98",
+      "name": "emergency_response1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook Citizen').item.json.body.input.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a crisis assistant for the HQ app. The citizen sent a message not relevant to crisis management.\n\nCURRENT CRISIS CONTEXT:\n- Status: {{ $('Webhook Citizen').item.json.body.context.crisis.type }}\n- Area: {{ $('Webhook Citizen').item.json.body.context.crisis.area }}\n- Location: {{ $('Webhook Citizen').item.json.body.context.location }}\n- Health: {{ $('Webhook Citizen').item.json.body.context.health }}\n- Coordinator updates: {{ $('Webhook Citizen').item.json.body.context.coordinator_updates[0].message }}\n- Previous conversation: {{ $('Webhook Citizen').item.json.body.context.session }}\n\nDo NOT answer the off-topic question.\nPolitely redirect in one sentence and report the current crisis status based on the context above.\nUse available tools to check if any health conditions require immediate attention given the current crisis.\n\nCRISIS STATUS RULE:\n- If status is \"normal\", do not suggest or imply any active crisis — respond calmly, no alarm language\n- If status is \"blackout\" or other active crisis, briefly inform the citizen of the current situation\n\nSUGGESTED BUTTONS: exactly 2 pre-filled questions shown to the citizen as their next message to you. Write them from the citizen's perspective. Max 5 words each. Make them the most relevant given the active crisis and health context.",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        -480
+      ],
+      "id": "6c870faa-32bd-4232-ae2b-74cf341ddcc7",
+      "name": "AI Agent8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook Citizen').item.json.body.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"session_id\": \"{{ $('Webhook Citizen').item.json.body.session_id }}\",\n  \"role\": \"ai\",\n  \"content\": \"{{ $json.output.content }}\",\n  \"suggested_buttons\": {{ JSON.stringify($json.output.suggested_buttons) }},\n  \"call_izs\": {{ $json.output.call_izs }},\n  \"send_ok_to_contacts\": {{ $json.output.send_ok_to_contacts }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1584,
+        -624
+      ],
+      "id": "e87192c4-363e-41f0-9e1e-edda6b1cfc42",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "content": "# jsem stará appka\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -1440
+      ],
+      "id": "0d61988a-166d-4825-b772-f1fb97ea34b8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# jsem nová appka\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -816
+      ],
+      "id": "e2585b2a-45ae-4808-8775-04bb38caa5ca",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ session_id: $json.session_id, role: \"ai\", content: $json.output.content, suggested_buttons: $json.output.suggested_buttons, can_send: $json.output.can_send, final_announcement: $json.output.final_announcement || null, announcement_type: $json.output.announcement_type || null }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1632,
+        32
+      ],
+      "id": "fbfc2b4a-8af1-4a5a-b7a6-67a3d6a477cd",
+      "name": "HTTP Request Mayor"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "citizen-query-new",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        -624
+      ],
+      "id": "f4e35260-53a7-4063-855c-253b2062f842",
+      "name": "Webhook Citizen",
+      "webhookId": "0df54a89-af3f-48d8-9b80-0870fd6c1474",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"content\": { \"type\": \"string\" },\n    \"suggested_buttons\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"can_send\": { \"type\": \"boolean\" },\n    \"final_announcement\": { \"type\": \"string\" },\n    \"announcement_type\": { \"type\": \"string\" }\n  },\n  \"required\": [\"content\", \"suggested_buttons\", \"can_send\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "8b48094a-4f30-4aba-b269-640f009c0026",
+      "name": "Structured Output Parser3"
+    }
+  ],
+  "pinData": {
+    "Webhook Mayor": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.okacko.vscht.cz",
+            "user-agent": "node",
+            "content-length": "402",
+            "accept": "*/*",
+            "accept-encoding": "br, gzip, deflate",
+            "accept-language": "*",
+            "content-type": "application/json",
+            "sec-fetch-mode": "cors",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "34.204.200.155",
+            "x-forwarded-host": "n8n.okacko.vscht.cz",
+            "x-forwarded-proto": "https",
+            "x-invocation-id": "fra1::xgrxk-1780733666664-e7f56e7e9c08",
+            "x-vercel-id": "fra1::xgrxk-1780733666664-e7f56e7e9c08"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "input": {
+              "text": "At 10:01 of my time",
+              "source": "coordinator_chat"
+            },
+            "context": {
+              "current_status": "normal",
+              "area": "Demo Zone",
+              "session": "user: It's blackout.\nai: A blackout has been reported. What time did the blackout start?\nuser: At 10:01 of my time\nuser: At 10:01 of my time\nuser: At 10:01 of my time"
+            },
+            "session_id": "coordinator",
+            "callback_url": "https://after-the-dark.vercel.app/api/webhook/n8n"
+          },
+          "webhookUrl": "https://n8n.okacko.vscht.cz/webhook/mayor-query",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Citizen": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.okacko.vscht.cz",
+            "user-agent": "node",
+            "content-length": "1877",
+            "accept": "*/*",
+            "accept-encoding": "br, gzip, deflate",
+            "accept-language": "*",
+            "content-type": "application/json",
+            "sec-fetch-mode": "cors",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "23.22.59.26",
+            "x-forwarded-host": "n8n.okacko.vscht.cz",
+            "x-forwarded-proto": "https",
+            "x-invocation-id": "fra1::ldhqf-1780731689255-b4b6c3cb4078",
+            "x-vercel-id": "fra1::ldhqf-1780731689255-b4b6c3cb4078"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "input": {
+              "text": "My neigbour is bleeding heavily. What do i need to dooooo?????",
+              "source": "chat"
+            },
+            "context": {
+              "crisis": {
+                "type": "blackout",
+                "area": "Demo Zone"
+              },
+              "location": "Praha 7",
+              "health": "Diabetes: yes, Heart disease: no, Movement restrictions: no, Pregnancy: no",
+              "contacts": [
+                {
+                  "id": "f6304582-7e8f-47a7-8522-5ff6ee365c10",
+                  "name": "Marie Svobodová",
+                  "phone": "+420 987 654 321",
+                  "status": "ok"
+                },
+                {
+                  "id": "333fad53-707c-4764-965c-fe90fd647b4e",
+                  "name": "Mamka",
+                  "phone": "+420 123 456 789",
+                  "status": "unknown"
+                }
+              ],
+              "coordinator_updates": [
+                {
+                  "message": "Test blackout",
+                  "valid_until": null
+                },
+                {
+                  "message": "A power outage has been confirmed in the Demo Zone since 14:00. Restoration is estimated by 18:00. Please stay calm, conserve phone battery, and avoid using elevators. A water distribution point is available at Primary school Korunovační until 19:00. Further updates will be provided via this app.",
+                  "valid_until": null
+                },
+                {
+                  "message": "A power outage has been confirmed in the Demo Zone since 14:00. Restoration is estimated by 18:00. Please stay calm, conserve phone battery, and avoid using elevators. A water distribution point is available at Primary school Korunovační until 19:00. Further updates will be provided via this app.",
+                  "valid_until": null
+                },
+                {
+                  "message": "test",
+                  "valid_until": null
+                }
+              ],
+              "session": "user: Test\nuser: Hey! Where can I get water?\nuser: Hey! Where to find food?\nuser: Hey! Is everything ok?\nuser: Hey? Is it workin'?\nuser: Is everything ok?\nuser: What to do now?\nuser: what to do now?\nai: I can help with questions about crisis management. How can I assist you regarding a crisis?\nuser: Blackout info?\nai: This channel is for crisis management. Currently, there is no active crisis information to report.\nuser: My neigbour is bleeding heavily. What do i need to dooooo?????"
+            },
+            "session_id": "citizen-1",
+            "callback_url": "https://after-the-dark.vercel.app/api/webhook/n8n"
+          },
+          "webhookUrl": "https://n8n.okacko.vscht.cz/webhook/citizen-query-new",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "first_aid": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blackout_info": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "survival_supplies": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emergency_response": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent5",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "AI Agent5",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Webhook Mayor": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blackout_situation_template": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent5",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crisis_communication_rules": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent5",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent6": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent7",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "AI Agent7",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent7": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "first_aid1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blackout_info1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "survival_supplies1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "emergency_response1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent8": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Mayor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "AI Agent5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Mayor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Webhook Citizen": {
+      "main": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "AI Agent5",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a0848f86-f907-4250-9fde-3a9453eb044a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "83d712c3ffa8fb82b9e08709d2766b240b94079514d43904b3af54dacfd17276"
+  },
+  "id": "o8JuCd4xEHfNM1MI",
+  "tags": []
+}
