@@ -13,18 +13,18 @@ interface Props {
 export default function ContactsList({ contacts, contactStatuses, isBlackout }: Props) {
   const [isOpen, setIsOpen] = useState(true)
 
-  const borderColor = isBlackout ? 'border-red-800' : 'border-slate-800'
-  const cardBg = isBlackout ? 'bg-red-900/30' : 'bg-slate-900'
-  const dividerColor = isBlackout ? 'border-red-900/70' : 'border-slate-800'
-  const iconColor = isBlackout ? 'text-red-400' : 'text-slate-400'
-  const badgeBg = isBlackout ? 'bg-red-800/60 text-red-300' : 'bg-slate-800 text-slate-400'
+  const borderColor = isBlackout ? 'border-amber-900/50' : 'border-slate-800'
+  const cardBg = isBlackout ? 'bg-slate-900' : 'bg-slate-900'
+  const dividerColor = isBlackout ? 'border-amber-900/40' : 'border-slate-800'
+  const iconColor = isBlackout ? 'text-amber-500' : 'text-slate-400'
+  const badgeBg = isBlackout ? 'bg-amber-900/40 text-amber-400' : 'bg-slate-800 text-slate-400'
 
   return (
     <div className={`rounded-xl border overflow-hidden ${cardBg} ${borderColor}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full px-4 py-3 flex items-center justify-between transition-colors ${
-          isBlackout ? 'hover:bg-red-800/20' : 'hover:bg-slate-800/50'
+          isBlackout ? 'hover:bg-amber-900/20' : 'hover:bg-slate-800/50'
         }`}
       >
         <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export default function ContactsList({ contacts, contactStatuses, isBlackout }: 
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 ${
-                        isOk ? 'bg-green-600' : isBlackout ? 'bg-red-800' : 'bg-slate-700'
+                        isOk ? 'bg-green-600' : 'bg-slate-700'
                       }`}
                     >
                       {contact.name.charAt(0)}

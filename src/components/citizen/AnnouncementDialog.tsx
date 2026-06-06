@@ -22,22 +22,22 @@ export default function AnnouncementDialog({ announcement, onDismiss, isBlackout
   }, [])
 
   const overlayBg = isBlackoutType
-    ? 'bg-red-950/97'
+    ? 'bg-slate-950/97'
     : isAllClear
     ? 'bg-green-950/97'
     : 'bg-slate-950/95'
 
   const cardBg = isBlackoutType
-    ? 'bg-red-900 border-red-500'
+    ? 'bg-slate-800 border-amber-600'
     : isAllClear
     ? 'bg-green-900 border-green-500'
     : 'bg-slate-800 border-slate-600'
 
-  const iconColor = isBlackoutType ? 'text-red-400' : isAllClear ? 'text-green-400' : 'text-amber-400'
-  const titleColor = isBlackoutType ? 'text-red-200' : isAllClear ? 'text-green-200' : 'text-white'
-  const msgColor = isBlackoutType ? 'text-red-100' : isAllClear ? 'text-green-100' : 'text-slate-200'
+  const iconColor = isBlackoutType ? 'text-amber-400' : isAllClear ? 'text-green-400' : 'text-amber-400'
+  const titleColor = isBlackoutType ? 'text-amber-200' : isAllClear ? 'text-green-200' : 'text-white'
+  const msgColor = 'text-slate-200'
   const btnBg = isBlackoutType
-    ? 'bg-red-600 hover:bg-red-500'
+    ? 'bg-amber-600 hover:bg-amber-500'
     : isAllClear
     ? 'bg-green-600 hover:bg-green-500'
     : 'bg-slate-600 hover:bg-slate-500'
@@ -70,7 +70,7 @@ export default function AnnouncementDialog({ announcement, onDismiss, isBlackout
         {/* Icon */}
         <div className="mb-4 flex justify-center">
           {isBlackoutType ? (
-            <WifiOff size={60} className={`${iconColor} animate-pulse`} />
+            <WifiOff size={60} className={iconColor} />
           ) : isAllClear ? (
             <CheckCircle2 size={60} className={iconColor} />
           ) : (
@@ -80,7 +80,7 @@ export default function AnnouncementDialog({ announcement, onDismiss, isBlackout
 
         {/* Title */}
         <h2 className={`text-2xl font-black mb-1 uppercase tracking-wide ${titleColor}`}>
-          {isBlackoutType ? '⚡ Blackout Alert' : isAllClear ? '✅ All Clear' : '📢 New Update'}
+          {isBlackoutType ? '⚡ Power Outage' : isAllClear ? '✅ All Clear' : '📢 New Update'}
         </h2>
 
         {/* Meta */}

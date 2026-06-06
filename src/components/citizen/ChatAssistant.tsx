@@ -31,26 +31,24 @@ export default function ChatAssistant({ messages, isLoading, isBlackout, onSendM
   const lastAiMsg = [...messages].reverse().find((m) => m.role === 'ai')
   const suggestedButtons = lastAiMsg?.suggested_buttons ?? []
 
-  const cardBg = isBlackout ? 'bg-red-900/30 border-red-800' : 'bg-slate-900 border-slate-800'
-  const headerBorder = isBlackout ? 'border-red-800' : 'border-slate-800'
+  const cardBg = isBlackout ? 'bg-slate-900 border-amber-900/50' : 'bg-slate-900 border-slate-800'
+  const headerBorder = isBlackout ? 'border-amber-900/50' : 'border-slate-800'
   const inputBg = isBlackout
-    ? 'bg-red-950 border-red-700 text-white placeholder-red-500 focus:border-red-500'
+    ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-600'
     : 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-slate-500'
-  const sendBtnBg = isBlackout ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'
-  const userBubble = isBlackout ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'
-  const aiBubble = isBlackout
-    ? 'bg-red-950 border border-red-800 text-red-100'
-    : 'bg-slate-800 border border-slate-700 text-slate-100'
-  const aiLabel = isBlackout ? 'text-red-400' : 'text-blue-400'
+  const sendBtnBg = 'bg-blue-600 hover:bg-blue-500'
+  const userBubble = 'bg-blue-600 text-white'
+  const aiBubble = 'bg-slate-800 border border-slate-700 text-slate-100'
+  const aiLabel = 'text-blue-400'
   const suggestBorder = isBlackout
-    ? 'border-red-700 text-red-300 hover:bg-red-800 hover:text-white'
+    ? 'border-amber-800/60 text-amber-300 hover:bg-amber-900/40 hover:text-white'
     : 'border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'
 
   return (
     <div className={`rounded-xl border overflow-hidden ${cardBg}`}>
       {/* Header */}
       <div className={`px-4 py-3 border-b flex items-center gap-2 ${headerBorder}`}>
-        <Bot size={16} className={isBlackout ? 'text-red-400' : 'text-blue-400'} />
+        <Bot size={16} className="text-blue-400" />
         <h2 className="text-white font-semibold text-sm">AI Crisis Assistant</h2>
       </div>
 

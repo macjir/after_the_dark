@@ -98,46 +98,38 @@ export default function CoordinatorApp({ initialMessages, initialCrisisStatus }:
 
   const isBlackout = crisisStatus === 'blackout'
 
-  const cardBg = isBlackout ? 'bg-red-900/30 border-red-800' : 'bg-slate-900 border-slate-800'
-  const borderColor = isBlackout ? 'border-red-800' : 'border-slate-800'
-  const userBubble = isBlackout ? 'bg-red-700 text-white' : 'bg-blue-700 text-white'
-  const aiBubble = isBlackout
-    ? 'bg-red-950 border border-red-800 text-red-100'
-    : 'bg-slate-800 border border-slate-700 text-slate-100'
-  const aiLabel = isBlackout ? 'text-red-400' : 'text-blue-400'
-  const inputBg = isBlackout
-    ? 'bg-red-950 border-red-700 text-white placeholder-red-500 focus:border-red-500'
-    : 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-slate-500'
-  const sendBtn = isBlackout ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'
+  const cardBg = isBlackout ? 'bg-slate-900 border-amber-900/50' : 'bg-slate-900 border-slate-800'
+  const borderColor = isBlackout ? 'border-amber-900/50' : 'border-slate-800'
+  const userBubble = 'bg-blue-700 text-white'
+  const aiBubble = 'bg-slate-800 border border-slate-700 text-slate-100'
+  const aiLabel = 'text-blue-400'
+  const inputBg = 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-slate-500'
+  const sendBtn = 'bg-blue-600 hover:bg-blue-500'
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-1000 ${
-        isBlackout ? 'bg-red-950' : 'bg-slate-950'
-      }`}
-    >
+    <div className="min-h-screen bg-slate-950">
       {/* ── Header ── */}
       <header
-        className={`sticky top-0 z-30 px-4 py-3 border-b transition-colors duration-1000 ${
-          isBlackout ? 'bg-red-950 border-red-800' : 'bg-slate-950 border-slate-800'
+        className={`sticky top-0 z-30 px-4 py-3 border-b bg-slate-950 ${
+          isBlackout ? 'border-amber-900/60' : 'border-slate-800'
         }`}
       >
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div>
             <h1 className="text-white font-bold text-lg leading-tight">Mayor Petr Dvořák</h1>
-            <p className={`text-xs ${isBlackout ? 'text-red-400' : 'text-slate-500'}`}>
+            <p className={`text-xs ${isBlackout ? 'text-amber-500' : 'text-slate-500'}`}>
               Coordinator · Demo Zone
             </p>
           </div>
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
               isBlackout
-                ? 'bg-red-500 text-white animate-pulse'
+                ? 'bg-amber-700/70 text-amber-100 border border-amber-600/50'
                 : 'bg-green-500/15 text-green-400 border border-green-500/30'
             }`}
           >
             {isBlackout ? <WifiOff size={13} /> : <Wifi size={13} />}
-            {isBlackout ? 'BLACKOUT' : 'NORMAL'}
+            {isBlackout ? 'POWER OUTAGE' : 'NORMAL'}
           </div>
         </div>
       </header>
@@ -146,14 +138,12 @@ export default function CoordinatorApp({ initialMessages, initialCrisisStatus }:
       <main className="max-w-lg mx-auto px-4 py-4 pb-8">
         {/* Info banner */}
         <div
-          className={`rounded-xl border p-3 mb-4 flex items-center gap-3 ${
-            isBlackout ? 'bg-red-900/40 border-red-800' : 'bg-slate-900 border-slate-800'
-          }`}
+            className={`rounded-xl border p-3 mb-4 flex items-center gap-3 bg-slate-900 border-slate-800`}
         >
-          <Radio size={18} className={isBlackout ? 'text-red-400 animate-pulse' : 'text-amber-400'} />
+          <Radio size={18} className={isBlackout ? 'text-amber-400' : 'text-amber-400'} />
           <div>
             <p className="text-white text-sm font-semibold">Crisis Communication Console</p>
-            <p className={`text-xs ${isBlackout ? 'text-red-400' : 'text-slate-500'}`}>
+            <p className={`text-xs ${isBlackout ? 'text-amber-500' : 'text-slate-500'}`}>
               Describe the situation — AI will prepare a public announcement
             </p>
           </div>
@@ -202,11 +192,7 @@ export default function CoordinatorApp({ initialMessages, initialCrisisStatus }:
                       <button
                         key={i}
                         onClick={() => handleSend(btn)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                          isBlackout
-                            ? 'border-red-700 text-red-300 hover:bg-red-800 hover:text-white'
-                            : 'border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'
-                        }`}
+                        className="text-xs px-3 py-1.5 rounded-full border transition-colors border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
                       >
                         {btn}
                       </button>

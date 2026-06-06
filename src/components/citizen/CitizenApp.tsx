@@ -173,11 +173,7 @@ export default function CitizenApp({
   const isBlackout = crisisStatus === 'blackout'
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-1000 ${
-        isBlackout ? 'bg-red-950' : 'bg-slate-950'
-      }`}
-    >
+    <div className="min-h-screen bg-slate-950">
       {/* Announcement Dialog */}
       {pendingAnnouncement && (
         <AnnouncementDialog
@@ -196,19 +192,15 @@ export default function CitizenApp({
 
       {/* ── Header ── */}
       <header
-        className={`sticky top-0 z-30 px-4 py-3 border-b transition-colors duration-1000 ${
-          isBlackout ? 'bg-red-950 border-red-800' : 'bg-slate-950 border-slate-800'
+        className={`sticky top-0 z-30 px-4 py-3 border-b bg-slate-950 ${
+          isBlackout ? 'border-amber-900/60' : 'border-slate-800'
         }`}
       >
         <div className="flex items-center justify-between max-w-lg mx-auto">
           {/* Hamburger */}
           <button
             onClick={() => setMenuOpen(true)}
-            className={`p-2 rounded-lg transition-colors relative ${
-              isBlackout
-                ? 'text-red-400 hover:text-white hover:bg-red-800'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
+            className="p-2 rounded-lg transition-colors relative text-slate-400 hover:text-white hover:bg-slate-800"
             aria-label="Open announcements"
           >
             <Menu size={22} />
@@ -220,7 +212,7 @@ export default function CitizenApp({
           {/* Name + zone */}
           <div className="text-center">
             <h1 className="text-white font-bold text-lg leading-tight">{citizen.name}</h1>
-            <p className={`text-xs ${isBlackout ? 'text-red-400' : 'text-slate-500'}`}>
+            <p className={`text-xs ${isBlackout ? 'text-amber-500' : 'text-slate-500'}`}>
               {citizen.zone}
             </p>
           </div>
@@ -229,12 +221,12 @@ export default function CitizenApp({
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
               isBlackout
-                ? 'bg-red-500 text-white animate-pulse'
+                ? 'bg-amber-700/70 text-amber-100 border border-amber-600/50'
                 : 'bg-green-500/15 text-green-400 border border-green-500/30'
             }`}
           >
             {isBlackout ? <WifiOff size={13} /> : <Wifi size={13} />}
-            {isBlackout ? 'BLACKOUT' : 'NORMAL'}
+            {isBlackout ? 'POWER OUTAGE' : 'NORMAL'}
           </div>
         </div>
       </header>
@@ -243,14 +235,14 @@ export default function CitizenApp({
       <main className="max-w-lg mx-auto px-4 py-4 space-y-4 pb-8">
         {/* "I'm OK" card */}
         <div
-          className={`rounded-xl border p-4 transition-colors duration-1000 ${
-            isBlackout ? 'bg-red-900/40 border-red-800' : 'bg-slate-900 border-slate-800'
+          className={`rounded-xl border p-4 ${
+            isBlackout ? 'bg-slate-900 border-amber-800/50' : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${
-                isBlackout ? 'text-red-400' : 'text-slate-500'
+                isBlackout ? 'text-amber-500' : 'text-slate-500'
               }`}>
                 Your Status
               </p>
@@ -265,7 +257,7 @@ export default function CitizenApp({
                   })}
                 </p>
               ) : (
-                <p className={`text-xs ${isBlackout ? 'text-red-300/60' : 'text-slate-600'}`}>
+                <p className="text-xs text-slate-600">
                   Not reported yet
                 </p>
               )}
